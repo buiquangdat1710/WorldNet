@@ -924,7 +924,32 @@
                         <img src="https://sacus.vn/wp-content/uploads/2019/06/no-image.jpg" id="preview_post_thumbnail" style="width: 100%; height: 200px;object-fit: cover; border-radius: 10px;" alt="" for="post-thumbnail">
                     </div>
                 </div>
+                <div id="loading-indicator" style="display: none; text-align: center; font-size: 24px; margin-top: 20%;">
+                    <div id="spinner">⏳</div> <!-- Sử dụng ký tự Unicode cho spinner -->
+                </div>
                 <script>
+                    function showLoading() {
+                        document.getElementById("loading-indicator").style.display = "block"; // Hiển thị spinner
+                        rotateSpinner(); // Bắt đầu quay spinner
+                    }
+
+                    function hideLoading() {
+                        document.getElementById("loading-indicator").style.display = "none"; // Ẩn spinner
+                        clearInterval(spinnerInterval); // Dừng quay spinner
+                    }
+
+                    let spinnerInterval;
+
+                    function rotateSpinner() {
+                        const spinner = document.getElementById("spinner");
+                        const frames = ['⏳', '⌛', '⏳']; // Các ký tự để tạo hiệu ứng quay
+                        let index = 0;
+
+                        spinnerInterval = setInterval(() => {
+                            spinner.innerHTML = frames[index];
+                            index = (index + 1) % frames.length; // Chuyển đổi giữa các ký tự
+                        }, 500); // Thay đổi mỗi 500ms
+                    }
                     let generatedImageFile = null; // Biến toàn cục để lưu ảnh AI
                 
                     var loadFile = function (event) {
@@ -963,6 +988,7 @@
                             alert("Please enter a prompt for AI image generation.");
                             return;
                         }
+                        showLoading(); // Hiển thị spinner khi bắt đầu
                 
                         // Gọi API tạo ảnh AI
                         fetch('/generate-ai-image/', {
@@ -980,6 +1006,7 @@
                             return response.json();
                         })
                         .then(data => {
+                            hideLoading(); // Ẩn spinner khi hoàn thành
                             if (data.image_url) {
                                 const preview = document.getElementById("preview_post_thumbnail");
                                 preview.src = data.image_url;
@@ -997,6 +1024,7 @@
                             }
                         })
                         .catch(error => {
+                            hideLoading(); // Ẩn spinner khi có lỗi
                             console.error("Error generating AI image:", error);
                         });
                     }

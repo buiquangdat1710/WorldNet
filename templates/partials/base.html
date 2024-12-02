@@ -352,6 +352,7 @@
                                             </a>
                                         </div>
                                     </div>
+                                    <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
                                     <script>
                                         $(document).ready(function() {
                                             $('#message-search-form').on('submit', function(event) {
@@ -367,7 +368,13 @@
                                                             var resultsHtml = '';
                                                             if (data.length > 0) {
                                                                 data.forEach(function(item) {
-                                                                    resultsHtml += '<li><strong>' + item.full_name + '</strong>: ' + item.message + '</li>';
+                                                                    if (item.sender_username === '{{ request.user.username }}' || item.reciever_username === '{{ request.user.username }}') {  
+                                                                        var messageHtml = marked(item.message);
+                                                                        resultsHtml += '<li><strong>' + item.full_name + '</strong>: ' + messageHtml + '</li><hr>'; 
+                                                                    } else{
+                                                                        resultsHtml = '<li>No messages found.</li>';
+                                                                    }
+                                                                    
                                                                 });
                                                             } else {
                                                                 resultsHtml = '<li>No messages found.</li>';

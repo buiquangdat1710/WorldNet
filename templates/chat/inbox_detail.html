@@ -143,7 +143,7 @@
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
     <script>
         $(function() {
             var receiver = null;
@@ -172,13 +172,14 @@
                 var sender = data.sender;
                 var profileImage = data.profile_image;
                 var reciever = data.reciever;
+                var messageHtml = marked(message);
 
     
                 var chatMessage = '<div class="message-bubble' + (sender === "{{sender}}" ? ' me' : '') + '">';
                 chatMessage += '<div class="message-bubble-inner">';
                 chatMessage += '<div class="message-avatar"><img src="' + profileImage + '" alt=""></div>';
                 chatMessage += '<div class="message-text">';
-                chatMessage += '<p>' + message + '</p>';
+                chatMessage += '<p>' + messageHtml + '</p>';
                 chatMessage += '</div>';
                 chatMessage += '</div>';
                 chatMessage += '<div class="clearfix"></div>';

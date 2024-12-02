@@ -459,7 +459,7 @@ def inbox(request):
     try:
         minic_user = User.objects.get(email='minic@gmail.com')
         if not ChatMessage.objects.filter(sender=minic_user, reciever=user_id):
-            ChatMessage.objects.create(sender=minic_user, reciever=user_id, message="Xin chào bạn, mình là Minic, trợ lý ảo của riêng bạn. Bạn có muốn nói chuyện với mình không ?")
+            ChatMessage.objects.create(sender=minic_user, reciever=user_id, message=f"Xin chào {request.user.username}, mình là Minic, trợ lý ảo của riêng bạn. Bạn có muốn nói chuyện với mình không ?")
     except User.DoesNotExist:
         pass
     
@@ -537,12 +537,22 @@ def block_user(request):
 
 def search_messages(request):
     query = request.GET.get('q', '')
-    if query:
+    if query:  # Update this condition to check for a more specific query
         messages = ChatMessage.objects.filter(
             Q(sender__full_name__icontains=query) | 
-            Q(reciever__full_name__icontains=query)
+            Q(reciever__full_name__icontains=query) |
+            Q(message__icontains=query)  # {{ edit_1 }}: Added condition to search by message content
         )
-        results = [{'full_name': m.sender.full_name, 'message': m.message} for m in messages]
+        results = [
+            {
+                'full_name': m.sender.full_name,
+                'message': m.message,
+                'sender_username': m.sender.username,  # {{ edit_2 }}: Added sender_username
+                'reciever_username': m.reciever.username,  # {{ edit_3 }}: Added reciever_username
+                'date': m.date.isoformat()  # {{ edit_4 }}: Added date in ISO format
+            } 
+            for m in messages
+        ]
     else:
         results = []
     return JsonResponse(results, safe=False)
@@ -587,7 +597,7 @@ def send_message(request):
                 completion = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are Minic, a helpful assistant for the social networking website WorldNet. WorldNet is a platform where users can post updates, react, comment, and interact with friends. You can provide information about the website, help with navigating features like posting, commenting, friend requests, and messaging, and answer questions about WorldNet’s policies. When users ask about you, introduce yourself as Minic, the WorldNet chatbot here to make the experience smooth and answer any questions. Always respond in a friendly and concise manner."},
+                        {"role": "system", "content": "Bạn là Minic, trợ lý đắc lực cho trang mạng xã hội WorldNet. WorldNet là nền tảng nơi người dùng có thể đăng thông tin cập nhật, phản ứng, nhận xét và tương tác với bạn bè. Bạn có thể cung cấp thông tin về trang web, trợ giúp điều hướng các tính năng như đăng bài, nhận xét, yêu cầu kết bạn và nhắn tin cũng như trả lời các câu hỏi về chính sách của WorldNet. Khi người dùng hỏi về bạn, hãy tự giới thiệu mình là Minic, chatbot WorldNet tại đây để trải nghiệm được suôn sẻ và giải đáp mọi thắc mắc. Luôn trả lời một cách thân thiện và ngắn gọn. Bạn phải trả lời dưới dạng markdown và hãy thêm các icon vào để làm sinh động câu trả lời của bạn"},
                         *history
                     ]
                 )
