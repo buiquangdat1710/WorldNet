@@ -163,6 +163,30 @@ import requests
 import os
 from dotenv import load_dotenv
 
+
+
+@csrf_exempt
+def translate_prompt(request):
+    client = OpenAI(api_key=os.getenv("API_OPENAI_KEY"))
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        prompt = data.get("prompt", "")
+
+        if not prompt:
+            return JsonResponse({"error": "Prompt is required"}, status=400)
+
+        # Gọi API OpenAI để dịch prompt
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": f"Translate this to English: {prompt}. Just translate that sentence into English, don't answer anything else"}]
+        )
+        translated_prompt = completion.choices[0].message.content
+
+        return JsonResponse({"translated_prompt": translated_prompt})
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
 @csrf_exempt
 def generate_ai_image(request):
     if request.method == 'POST':

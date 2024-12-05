@@ -26,4 +26,5 @@ urlpatterns = [
     path("block-user/", views.block_user, name="block-user"),
     path('generate-ai-image/', views.generate_ai_image, name='generate_ai_image'),
     path('send-message/', views.send_message, name='send_message'),
+    path('translate-prompt/', views.translate_prompt, name='translate_prompt'),
 ]

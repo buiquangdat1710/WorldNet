@@ -981,17 +981,9 @@
                 
                     // Lấy CSRF token
                     const csrftoken = getCookie('csrftoken');
-                
-                    function generateAIImage() {
-                        const prompt = document.getElementById("ai-prompt-input").value;
-                        if (!prompt) {
-                            alert("Please enter a prompt for AI image generation.");
-                            return;
-                        }
-                        showLoading(); // Hiển thị spinner khi bắt đầu
-                
-                        // Gọi API tạo ảnh AI
-                        fetch('/generate-ai-image/', {
+
+                    function translatePrompt(prompt) {
+                        return fetch('/translate-prompt/', {  // Đường dẫn đến API của bạn
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1001,32 +993,65 @@
                         })
                         .then(response => {
                             if (!response.ok) {
-                                throw new Error("Failed to generate AI image");
+                                throw new Error("Failed to translate prompt");
                             }
                             return response.json();
                         })
                         .then(data => {
-                            hideLoading(); // Ẩn spinner khi hoàn thành
-                            if (data.image_url) {
-                                const preview = document.getElementById("preview_post_thumbnail");
-                                preview.src = data.image_url;
-                                document.getElementById("ai-prompt-container").style.display = "none";
-                
-                                // Tạo một đối tượng file từ URL ảnh AI
-                                fetch(data.image_url)
-                                    .then(res => res.blob())
-                                    .then(blob => {
-                                        generatedImageFile = new File([blob], "generated-image.jpg", { type: blob.type });
-                                    });
-                            } else {
-                                console.error("Image URL not found in response");
-                                alert("Image URL not found in response");
-                            }
-                        })
-                        .catch(error => {
-                            hideLoading(); // Ẩn spinner khi có lỗi
-                            console.error("Error generating AI image:", error);
+                            return data.translated_prompt; // Giả sử API trả về prompt đã dịch
                         });
+                    }
+                
+                    function generateAIImage() {
+                        const prompt = document.getElementById("ai-prompt-input").value;
+                        
+                        if (!prompt) {
+                            alert("Please enter a prompt for AI image generation.");
+                            return;
+                        }
+                        showLoading(); // Hiển thị spinner khi bắt đầu
+                
+                        // Gọi API tạo ảnh AI
+                        translatePrompt(prompt)
+                            .then(translatedPrompt => {
+                                // Gọi API tạo ảnh AI với prompt đã dịch
+                                return fetch('/generate-ai-image/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrftoken  // Thêm CSRF token
+                                    },
+                                    body: JSON.stringify({ prompt: translatedPrompt })
+                                });
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error("Failed to generate AI image");
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                hideLoading(); // Ẩn spinner khi hoàn thành
+                                if (data.image_url) {
+                                    const preview = document.getElementById("preview_post_thumbnail");
+                                    preview.src = data.image_url;
+                                    document.getElementById("ai-prompt-container").style.display = "none";
+
+                                    // Tạo một đối tượng file từ URL ảnh AI
+                                    fetch(data.image_url)
+                                        .then(res => res.blob())
+                                        .then(blob => {
+                                            generatedImageFile = new File([blob], "generated-image.jpg", { type: blob.type });
+                                        });
+                                } else {
+                                    console.error("Image URL not found in response");
+                                    alert("Image URL not found in response");
+                                }
+                            })
+                            .catch(error => {
+                                hideLoading(); // Ẩn spinner khi có lỗi
+                                console.error("Error generating AI image:", error);
+                            });
                     }
 
                     
