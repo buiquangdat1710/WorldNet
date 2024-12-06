@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-
+    <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
     <!-- Main Contents -->
     <div class="main_content">
         <span uk-toggle="target: .message-content;" class="fixed left-0 top-36 bg-red-600 z-10 py-1 px-4 rounded-r-3xl text-white"> Users</span>
@@ -106,7 +106,7 @@
                                             <span class="user_status status_online" style="position: absolute; margin-right: 0px; top: 35px;"></span>
                                         {% endif %}
                                         <div class="message-text">
-                                            <p>  {{m.message}}</p>
+                                            <p>  {{m.message|safe}}</p>
                                             <p class="text-muted"><small><span style="color: rgba(255, 255, 255, 0.596);">{{m.date}}</span></small></p>
                                         </div>
                                     </div>
@@ -120,7 +120,7 @@
                                             <span class="user_status status_online" style="position: absolute; margin-right: 1153px; top: 35px;"></span>
                                         {% endif %}
                                         <div class="message-text">
-                                            <p>{{m.message}}</p>
+                                            <p>{{m.message|safe}}</p>
                                             <p class="text-muted"><small><span style="color: rgba(128, 128, 128, 0.596);">{{m.date}}</span></small></p>
                                         </div>
                                     </div>
@@ -143,7 +143,6 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
     <script>
         $(function() {
             var receiver = null;
@@ -198,6 +197,7 @@
             $('#send-btn').on('click', function() {
                 var input = $('#chat-input');
                 var message = input.val();
+                var messageHtml = marked(message);
                 var sender = "{{request.user.username}}"; 
                 console.log("sender: ", sender);
                 console.log("username: ", username);
@@ -210,7 +210,7 @@
                         type: 'POST',
                         data: {
                             'receiver': username,
-                            'message': message,
+                            'message': messageHtml,
                             'csrfmiddlewaretoken': '{{ csrf_token }}'
                         },
                         success: function(response) {
@@ -237,7 +237,7 @@
                 } else {
                     // Gửi tin nhắn qua WebSocket
                     var data = {
-                        'message': message,
+                        'message': messageHtml,
                         'sender': sender,
                         'reciever': username,
                     };

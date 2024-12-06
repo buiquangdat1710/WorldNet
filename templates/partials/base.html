@@ -371,8 +371,6 @@
                                                                     if (item.sender_username === '{{ request.user.username }}' || item.reciever_username === '{{ request.user.username }}') {  
                                                                         var messageHtml = marked(item.message);
                                                                         resultsHtml += '<li><strong>' + item.full_name + '</strong>: ' + messageHtml + '</li><hr>'; 
-                                                                    } else{
-                                                                        resultsHtml = '<li>No messages found.</li>';
                                                                     }
                                                                     
                                                                 });

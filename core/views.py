@@ -599,6 +599,7 @@ def send_message(request):
             sender = request.user
             receiver_username = request.POST.get('receiver')
             message = request.POST.get('message')
+            print("Message:", message)
             if not receiver_username:
                 return JsonResponse({'error': 'Missing receiver username.'}, status=400)
             receiver = User.objects.get(username=receiver_username)
@@ -626,8 +627,8 @@ def send_message(request):
                     ]
                 )
                 reply = completion.choices[0].message.content
-
-
+                reply = markdown.markdown(reply)
+                print(reply)
 
                 # Thêm câu trả lời của Minic vào lịch sử
                 history.append({"role": "assistant", "content": reply})
